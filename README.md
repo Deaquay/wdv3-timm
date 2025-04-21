@@ -3,7 +3,7 @@
 small example thing showing how to use `timm` to run the WD Tagger V3 models.
 
 ## Changelog
-v1.01 - Added args and auto detection of models, file/directory detection, filesaving, and batch processing.
+v1.01 - Added args, auto detection of models, file/directory detection, filesaving, and batch processing.
 
 ## How To Use
 

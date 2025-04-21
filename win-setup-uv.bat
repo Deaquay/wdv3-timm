@@ -2,7 +2,7 @@
 
 set "cwd=%~dp0"
 
-echo This will install UV then Python v3.10.6 and its requirements to "%cwd%". Press any key to continue...
+echo This will install UV to handle venv and Python versions "%cwd%". Press any key to continue...
 
 pause
 

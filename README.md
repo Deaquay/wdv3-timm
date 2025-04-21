@@ -6,7 +6,7 @@ small example thing showing how to use `timm` to run the WD Tagger V3 models.
 
 1. clone the repository and enter the directory:
 ```sh
-git clone https://github.com/neggles/wdv3-timm.git
+git clone https://github.com/deaquay/wdv3-timm.git
 cd wd3-timm
 ```
 
@@ -25,25 +25,31 @@ python3.10 -m venv .venv
 source .venv/bin/activate
 # Upgrade pip/setuptools/wheel
 python -m pip install -U pip setuptools wheel
-# At this point, optionally you can install PyTorch manually (e.g. if you are not using an nVidia GPU)
-python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+# At this point, optionally you can install PyTorch manually (e.g. if you ARE using an nVidia GPU, cuXXX in url is cuda version, such as cu126 for cuda 12.6 check [Pytorch](https://pytorch.org/) for full install command.)
+python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cuXXX
 # Install requirements
 python -m pip install -r requirements.txt
 ```
 
-3. Run the example script, picking one of the 3 models to use:
+3. Run the example script, with defaults (see -h/--help for info):
 ```sh
-python wdv3_timm.py <swinv2|convnext|vit> path/to/image.png
+cd /path/wdv3_timm/
+.venv/scripts/python wdv3_timm.py path/to/image.png
+```
+Or
+```sh
+cd /path/wdv3_timm/
+.venv/scripts/python wdv3_timm.py path/to/folder
 ```
 
-Example output from `python wdv3_timm.py vit a_picture_of_ganyu.png`:
+Example output from `.venv/scripts/python wdv3_timm.py a_picture_of_ganyu.png`:
 ```sh
-Loading model 'vit' from 'SmilingWolf/wd-vit-tagger-v3'...
+Using tag file format: filename_tags.txt
+Using cuda
+Loading model 'eva02' from 'SmilingWolf/wd-eva02-large-tagger-v3'...
 Loading tag list...
 Creating data transform...
-Loading image and preprocessing...
-Running inference...
-Processing results...
+Processing single image...
 --------
 Caption: 1girl, horns, solo, bell, ahoge, colored_skin, blue_skin, neck_bell, looking_at_viewer, purple_eyes, upper_body, blonde_hair, long_hair, goat_horns, blue_hair, off_shoulder, sidelocks, bare_shoulders, alternate_costume, shirt, black_shirt, cowbell, ganyu_(genshin_impact)
 --------
@@ -81,4 +87,27 @@ General tags (threshold=0.35):
   shirt: 0.427
   black_shirt: 0.417
   cowbell: 0.415
+```
+## --help contents
+```
+usage: wdv3_timm.py [-h] [-g GEN_THRESHOLD] [-c CHAR_THRESHOLD] [-b BATCH_SIZE] [-q] [-f] [-r] [-s SUFFIX] [-m {eva02,vit-large,vit,convnext,swinv2}] path
+
+positional arguments:
+  path                  Path to image file or directory
+
+options:
+  -h, --help            show this help message and exit
+  -g GEN_THRESHOLD, --gen-threshold GEN_THRESHOLD
+                        General tag threshold (default: 0.35)
+  -c CHAR_THRESHOLD, --char-threshold CHAR_THRESHOLD
+                        Character tag threshold (default: 0.75)
+  -b BATCH_SIZE, --batch-size BATCH_SIZE
+                        Number of images to process at once (default: 8)
+  -q, --quiet           Run in quiet mode, output only tags, single image only.
+  -f, --force           Process images even if they already have txt files
+  -r, --recursive       Recursively search subdirectories for images
+  -s SUFFIX, --suffix SUFFIX
+                        Suffix for tag files: 'tags' for filename_tags.txt, 'none' for filename.txt (default: tags)
+  -m {eva02,vit-large,vit,convnext,swinv2}, --model {eva02,vit-large,vit,convnext,swinv2}
+                        Model to use (default: eva02)
 ```

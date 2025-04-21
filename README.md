@@ -33,6 +33,7 @@ python -m pip install torch torchvision torchaudio --index-url https://download.
 # Install requirements
 python -m pip install -r requirements.txt
 ```
+For windows there are bat files for installing UV to handle venv and python versions, then another to set up the VENV. But preferably you should install yourself.
 
 3. Run the example script, with defaults (see -h/--help for info):
 ```sh

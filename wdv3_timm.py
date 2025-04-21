@@ -1,16 +1,15 @@
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Optional, List, Tuple, Dict
-import threading
-import queue
 import argparse
-
 import numpy as np
 import pandas as pd
+import queue
+import threading
+from PIL import Image
+from dataclasses import dataclass
 from huggingface_hub import hf_hub_download
 from huggingface_hub.utils import HfHubHTTPError
-from PIL import Image
+from pathlib import Path
 from tqdm import tqdm
+from typing import Optional, List, Tuple, Dict
 
 MODEL_REPO_MAP = {
     "eva02": "SmilingWolf/wd-eva02-large-tagger-v3",

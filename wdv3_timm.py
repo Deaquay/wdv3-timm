@@ -3,7 +3,6 @@ import csv
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
-from urllib.parse import urlparse
 from urllib.request import urlopen, Request
 
 from huggingface_hub import hf_hub_download
@@ -21,7 +20,6 @@ MODEL_REPO_MAP = {
 }
 
 MAX_URL_BYTES = 20 * 1024 * 1024  # 20 MB
-VALID_URL_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".avif"}
 
 
 @dataclass
@@ -290,19 +288,8 @@ def handle_single_file(file_path: Path, opts: ScriptOptions, model, labels, tran
         print("Done!")
 
 
-def validate_image_url(url: str):
-    parsed = urlparse(url)
-    ext = Path(parsed.path).suffix.lower()
-    if ext not in VALID_URL_EXTENSIONS:
-        raise ValueError(
-            f"URL must point directly to an image file ({', '.join(VALID_URL_EXTENSIONS)}), got '{ext or 'none'}'"
-        )
-
-
 def handle_url(url: str, opts: ScriptOptions, model, labels, transform, device):
     import torch
-
-    validate_image_url(url)
 
     if not opts.quiet:
         print("Fetching image from URL...")
@@ -320,7 +307,12 @@ def handle_url(url: str, opts: ScriptOptions, model, labels, transform, device):
     if len(data) > MAX_URL_BYTES:
         raise ValueError("Image too large (>20MB), max is 20MB")
 
-    img = Image.open(BytesIO(data))
+    try:
+        img = Image.open(BytesIO(data))
+        img.verify()
+        img = Image.open(BytesIO(data))
+    except Exception:
+        raise ValueError("URL does not point to a valid image")
     img = pil_ensure_rgb(img)
     img = pil_pad_square(img)
 

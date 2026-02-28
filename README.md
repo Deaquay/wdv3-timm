@@ -1,117 +1,97 @@
 # wdv3-timm
 
-small example thing showing how to use `timm` to run the WD Tagger V3 models.
+Image tagging using [SmilingWolf's WD Tagger V3](https://huggingface.co/SmilingWolf) models, loaded via [timm](https://github.com/huggingface/pytorch-image-models). Models are downloaded automatically from HuggingFace on first run. Supports local files, directories (batch), and URLs.
 
-## Changelog
-v1.01 - Added args, auto detection of models, file/directory detection, filesaving, and batch processing.
+## Setup
 
-## How To Use
-
-1. clone the repository and enter the directory:
+1. Clone and enter the repo:
 ```sh
-git clone https://github.com/deaquay/wdv3-timm.git
-cd wd3-timm
+git clone https://github.com/Deaquay/wdv3-timm.git
+cd wdv3-timm
 ```
 
-2. Create a virtual environment and install the Python requirements.
-
-If you're using Linux, you can use the provided script:
+2. Install [uv](https://docs.astral.sh/uv/) (if you don't have it):
 ```sh
-bash setup.sh
+./install-uv.sh        # Linux/macOS
+install-uv.bat         # Windows
 ```
 
-Or if you're on Windows (or just want to do it manually), you can do the following:
+3. Run the installer:
 ```sh
-# Create virtual environment
-python3.10 -m venv .venv
-# Activate it
+./install.sh           # Linux/macOS
+install.bat            # Windows
+```
+
+This creates a Python 3.13 venv and installs torch with `--torch-backend auto` (auto-detects your CUDA version). If uv isn't installed it falls back to pip.
+
+4. Activate the venv:
+```sh
+source .venv/bin/activate       # Linux/macOS
+.venv\Scripts\activate          # Windows
+```
+
+<details>
+<summary>Manual setup (without uv)</summary>
+
+```sh
+python3 -m venv .venv
 source .venv/bin/activate
-# Upgrade pip/setuptools/wheel
-python -m pip install -U pip setuptools wheel
-# At this point, optionally you can install PyTorch manually (e.g. if you ARE using an nVidia GPU, cuXXX in url is cuda version, such as cu126 for cuda 12.6 check [Pytorch](https://pytorch.org/) for full install command.)
-python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cuXXX
-# Install requirements
-python -m pip install -r requirements.txt
-```
-For windows there are bat files for installing UV to handle venv and python versions, then another to set up the VENV. But preferably you should install yourself.
 
-3. Run the example script, with defaults (see -h/--help for info):
-```sh
-cd /path/wdv3_timm/
-.venv/scripts/python wdv3_timm.py path/to/image.png
+# Install torch first — see https://pytorch.org/ for your platform
+pip install torch torchvision
+
+pip install -r requirements.txt
 ```
-Or
+</details>
+
+## Usage
+
 ```sh
-cd /path/wdv3_timm/
-.venv/scripts/python wdv3_timm.py path/to/folder
+# Single image
+python wdv3_timm.py image.png
+
+# Batch process a directory
+python wdv3_timm.py /path/to/images/
+python wdv3_timm.py -r /path/to/images/            # recursive into subdirs
+
+# Tag from a URL (direct image link, max 20MB)
+python wdv3_timm.py https://example.com/image.png
 ```
 
-Example output from `.venv/scripts/python wdv3_timm.py a_picture_of_ganyu.png`:
-```sh
-Using tag file format: filename_tags.txt
+### Options
+
+| Flag | Description | Default |
+|---|---|---|
+| `-m MODEL` | Model: `eva02`, `vit-large`, `vit`, `convnext`, `swinv2` | `eva02` |
+| `-g THRESH` | General tag confidence threshold | `0.35` |
+| `-c THRESH` | Character tag confidence threshold | `0.75` |
+| `-b SIZE` | Batch size for directory processing | `8` |
+| `-s SUFFIX` | Output as `filename_SUFFIX.txt` instead of `filename.txt` | none |
+| `-q` | Quiet mode — tags to stdout only, no file output | off |
+| `-f` | Force reprocess even if tag file exists | off |
+| `-r` | Recurse into subdirectories | off |
+| `--csv` | Output as CSV (`tag,confidence` per line) | off |
+
+### Example
+
+```
+$ python wdv3_timm.py image.png
+
+Using tag file format: filename.txt
 Using cuda
 Loading model 'eva02' from 'SmilingWolf/wd-eva02-large-tagger-v3'...
 Loading tag list...
 Creating data transform...
 Processing single image...
 --------
-Caption: 1girl, horns, solo, bell, ahoge, colored_skin, blue_skin, neck_bell, looking_at_viewer, purple_eyes, upper_body, blonde_hair, long_hair, goat_horns, blue_hair, off_shoulder, sidelocks, bare_shoulders, alternate_costume, shirt, black_shirt, cowbell, ganyu_(genshin_impact)
+Caption: ganyu_(genshin_impact), 1girl, horns, solo, bell, ...
 --------
-Tags: 1girl, horns, solo, bell, ahoge, colored skin, blue skin, neck bell, looking at viewer, purple eyes, upper body, blonde hair, long hair, goat horns, blue hair, off shoulder, sidelocks, bare shoulders, alternate costume, shirt, black shirt, cowbell, ganyu \(genshin impact\)
+Tags saved to: image.txt
 --------
 Ratings:
   general: 0.827
   sensitive: 0.199
   questionable: 0.001
   explicit: 0.001
---------
-Character tags (threshold=0.75):
-  ganyu_(genshin_impact): 0.991
---------
-General tags (threshold=0.35):
-  1girl: 0.996
-  horns: 0.950
-  solo: 0.947
-  bell: 0.918
-  ahoge: 0.897
-  colored_skin: 0.881
-  blue_skin: 0.872
-  neck_bell: 0.854
-  looking_at_viewer: 0.817
-  purple_eyes: 0.734
-  upper_body: 0.615
-  blonde_hair: 0.609
-  long_hair: 0.607
-  goat_horns: 0.524
-  blue_hair: 0.496
-  off_shoulder: 0.472
-  sidelocks: 0.470
-  bare_shoulders: 0.464
-  alternate_costume: 0.437
-  shirt: 0.427
-  black_shirt: 0.417
-  cowbell: 0.415
-```
-## --help contents
-```
-usage: wdv3_timm.py [-h] [-g GEN_THRESHOLD] [-c CHAR_THRESHOLD] [-b BATCH_SIZE] [-q] [-f] [-r] [-s SUFFIX] [-m {eva02,vit-large,vit,convnext,swinv2}] path
-
-positional arguments:
-  path                  Path to image file or directory
-
-options:
-  -h, --help            show this help message and exit
-  -g GEN_THRESHOLD, --gen-threshold GEN_THRESHOLD
-                        General tag threshold (default: 0.35)
-  -c CHAR_THRESHOLD, --char-threshold CHAR_THRESHOLD
-                        Character tag threshold (default: 0.75)
-  -b BATCH_SIZE, --batch-size BATCH_SIZE
-                        Number of images to process at once (default: 8)
-  -q, --quiet           Run in quiet mode, output only tags, single image only.
-  -f, --force           Process images even if they already have txt files
-  -r, --recursive       Recursively search subdirectories for images
-  -s SUFFIX, --suffix SUFFIX
-                        Suffix for tag files: 'tags' for filename_tags.txt, 'none' for filename.txt (default: tags)
-  -m {eva02,vit-large,vit,convnext,swinv2}, --model {eva02,vit-large,vit,convnext,swinv2}
-                        Model to use (default: eva02)
+Done!
 ```
